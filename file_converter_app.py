@@ -5,7 +5,6 @@ import nbformat
 from nbconvert import PDFExporter
 import pandas as pd
 from pdf2image import convert_from_path
-from moviepy.editor import VideoFileClip
 import os
 import tempfile
 from io import BytesIO
@@ -110,24 +109,6 @@ def convert_markdown_to_pdf(md_file):
     HTML(string=html).write_pdf(target=pdf_file)
     return pdf_file.getvalue()
 
-def convert_mp4_to_gif(video_file):
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
-        tmp.write(video_file.read())
-        clip = VideoFileClip(tmp.name)
-        gif_path = tmp.name.replace(".mp4", ".gif")
-        clip.write_gif(gif_path)
-        with open(gif_path, "rb") as f:
-            return f.read()
-
-def convert_gif_to_mp4(gif_file):
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".gif") as tmp:
-        tmp.write(gif_file.read())
-        clip = VideoFileClip(tmp.name)
-        mp4_path = tmp.name.replace(".gif", ".mp4")
-        clip.write_videofile(mp4_path, codec="libx264")
-        with open(mp4_path, "rb") as f:
-            return f.read()
-
 # ----------------- UI Section -----------------
 conversion_options = {
     "PNG → JPG": ("image", "JPG"),
@@ -145,9 +126,7 @@ conversion_options = {
     "CSV → XLSX": ("csv", "XLSX"),
     "XLSX → CSV": ("xlsx", "CSV"),
     "JSON → CSV": ("json", "CSV"),
-    "CSV → JSON": ("csv", "JSON"),
-    "MP4 → GIF": ("mp4", "GIF"),
-    "GIF → MP4": ("gif", "MP4")
+    "CSV → JSON": ("csv", "JSON")
 }
 
 conversion_type = st.selectbox("Select Conversion Type", list(conversion_options.keys()))
@@ -189,12 +168,6 @@ if uploaded_file and st.button("Convert"):
 
         elif conversion_type == "CSV → JSON":
             result = convert_csv_to_json(uploaded_file)
-
-        elif conversion_type == "MP4 → GIF":
-            result = convert_mp4_to_gif(uploaded_file)
-
-        elif conversion_type == "GIF → MP4":
-            result = convert_gif_to_mp4(uploaded_file)
 
         elif conversion_type == "PDF → Images (JPG)":
             images = convert_pdf_to_images(uploaded_file)

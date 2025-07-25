@@ -1,11 +1,11 @@
 streamlit
-fpdf2
 Pillow
+fpdf
+nbformat
 nbconvert
 pandas
-openpyxl
-python-docx
 pdf2image
-moviepy
+python-docx
 markdown
 weasyprint
+openpyxl
