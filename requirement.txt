@@ -1,0 +1,12 @@
+streamlit
+fpdf
+Pillow
+nbconvert
+pandas
+openpyxl
+python-docx
+pdf2image
+pydub
+moviepy
+markdown
+weasyprint
