@@ -1,0 +1,8 @@
+poppler-utils
+ffmpeg
+libffi-dev
+libxml2
+libxml2-dev
+libpango-1.0-0
+libgdk-pixbuf2.0-0
+libcairo2
