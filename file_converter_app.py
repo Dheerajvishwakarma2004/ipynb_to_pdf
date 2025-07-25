@@ -13,6 +13,7 @@ from io import BytesIO
 from docx import Document
 from markdown import markdown
 from weasyprint import HTML
+AudioSegment.converter = "/usr/bin/ffmpeg"
 
 st.set_page_config(page_title="Universal File Converter", layout="centered")
 st.title("📁 Universal File Converter")
