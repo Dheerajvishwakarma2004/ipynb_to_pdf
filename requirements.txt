@@ -6,8 +6,6 @@ pandas
 openpyxl
 python-docx
 pdf2image
-pydub
 moviepy
 markdown
 weasyprint
-ffmpeg-python

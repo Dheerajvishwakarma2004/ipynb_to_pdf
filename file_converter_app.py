@@ -5,7 +5,6 @@ import nbformat
 from nbconvert import PDFExporter
 import pandas as pd
 from pdf2image import convert_from_path
-from pydub import AudioSegment
 from moviepy.editor import VideoFileClip
 import os
 import tempfile
@@ -13,7 +12,6 @@ from io import BytesIO
 from docx import Document
 from markdown import markdown
 from weasyprint import HTML
-AudioSegment.converter = "/usr/bin/ffmpeg"
 
 st.set_page_config(page_title="Universal File Converter", layout="centered")
 st.title("📁 Universal File Converter")
@@ -112,18 +110,6 @@ def convert_markdown_to_pdf(md_file):
     HTML(string=html).write_pdf(target=pdf_file)
     return pdf_file.getvalue()
 
-def convert_mp3_to_wav(audio_file):
-    sound = AudioSegment.from_mp3(audio_file)
-    buffer = BytesIO()
-    sound.export(buffer, format="wav")
-    return buffer.getvalue()
-
-def convert_wav_to_mp3(audio_file):
-    sound = AudioSegment.from_wav(audio_file)
-    buffer = BytesIO()
-    sound.export(buffer, format="mp3")
-    return buffer.getvalue()
-
 def convert_mp4_to_gif(video_file):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
         tmp.write(video_file.read())
@@ -160,8 +146,6 @@ conversion_options = {
     "XLSX → CSV": ("xlsx", "CSV"),
     "JSON → CSV": ("json", "CSV"),
     "CSV → JSON": ("csv", "JSON"),
-    "MP3 → WAV": ("mp3", "WAV"),
-    "WAV → MP3": ("wav", "MP3"),
     "MP4 → GIF": ("mp4", "GIF"),
     "GIF → MP4": ("gif", "MP4")
 }
@@ -205,12 +189,6 @@ if uploaded_file and st.button("Convert"):
 
         elif conversion_type == "CSV → JSON":
             result = convert_csv_to_json(uploaded_file)
-
-        elif conversion_type == "MP3 → WAV":
-            result = convert_mp3_to_wav(uploaded_file)
-
-        elif conversion_type == "WAV → MP3":
-            result = convert_wav_to_mp3(uploaded_file)
 
         elif conversion_type == "MP4 → GIF":
             result = convert_mp4_to_gif(uploaded_file)
