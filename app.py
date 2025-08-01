@@ -2,6 +2,7 @@ import streamlit as st
 import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
 from nbconvert import PDFExporter
+import nbconvert  # Import the base nbconvert package
 import os
 import sys
 import asyncio
@@ -37,13 +38,20 @@ def convert_notebook_to_pdf(notebook_path, output_path):
             nb = nbformat.read(f, as_version=4)
 
         # 2. Configure the PDF exporter
-        # --- MODIFIED: Removed the problematic get_template_path import ---
-        # We will pass our script's directory directly to the exporter.
-        # nbconvert will search our directory for 'notitle.tplx' and its own
-        # default directories for the base 'article.tplx' template.
+        # --- MODIFIED: Explicitly define all template search paths ---
+        # This ensures nbconvert can find both our custom 'notitle.tplx'
+        # and its own base template 'article.tplx'.
+        nbconvert_path = nbconvert.__path__[0]
+        default_templates_path = os.path.join(nbconvert_path, 'templates')
+        
+        template_search_paths = [
+            script_dir,
+            default_templates_path,
+        ]
+
         pdf_exporter = PDFExporter(
             template_file=template_file_name,
-            template_paths=[script_dir]
+            template_paths=template_search_paths
         )
         
         # 3. Convert the notebook to PDF
