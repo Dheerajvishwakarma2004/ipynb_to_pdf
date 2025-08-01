@@ -2,7 +2,6 @@ import streamlit as st
 import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
 from nbconvert import PDFExporter
-from nbconvert.resources.paths import get_template_path
 import os
 import sys
 import asyncio
@@ -38,14 +37,13 @@ def convert_notebook_to_pdf(notebook_path, output_path):
             nb = nbformat.read(f, as_version=4)
 
         # 2. Configure the PDF exporter
-        # --- MODIFIED: Explicitly provide the search path for all templates ---
-        # This tells nbconvert to look in our app's folder first, then in its own default folders.
-        # This ensures it can find both 'notitle.tplx' and the base 'article.tplx'.
-        template_search_paths = [script_dir] + get_template_path()
-
+        # --- MODIFIED: Removed the problematic get_template_path import ---
+        # We will pass our script's directory directly to the exporter.
+        # nbconvert will search our directory for 'notitle.tplx' and its own
+        # default directories for the base 'article.tplx' template.
         pdf_exporter = PDFExporter(
             template_file=template_file_name,
-            template_paths=template_search_paths
+            template_paths=[script_dir]
         )
         
         # 3. Convert the notebook to PDF
@@ -144,4 +142,3 @@ if __name__ == "__main__":
     if sys.platform == "win32" and sys.version_info >= (3, 8, 0):
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     main()
-
