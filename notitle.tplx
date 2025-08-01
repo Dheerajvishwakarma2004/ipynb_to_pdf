@@ -1,0 +1,1 @@
+((*- extends 'article.tplx' -*)) % This block overrides the default title block from the base template. % By leaving it empty, we prevent the title, author, and date from being rendered. ((* block title *)) ((* endblock title *))

@@ -10,10 +10,10 @@ import asyncio
 
 def convert_notebook_to_pdf(notebook_path, output_path):
     """
-    Converts an .ipynb notebook file to a PDF file.
+    Converts an .ipynb notebook file to a PDF file without the default title and date.
 
-    This function uses nbconvert's PDFExporter, which relies on a
-    LaTeX installation on the system.
+    This function uses a custom LaTeX template ('notitle.tplx') to override
+    the default title block.
 
     Args:
         notebook_path (str): The full path to the input notebook file.
@@ -24,20 +24,21 @@ def convert_notebook_to_pdf(notebook_path, output_path):
         str: A message indicating the result or error.
     """
     try:
+        # Define the path for the custom template
+        template_path = 'notitle.tplx'
+        
+        # --- NEW: Check if the custom template file exists ---
+        if not os.path.exists(template_path):
+            return False, f"Error: The required template file '{template_path}' was not found."
+
         # 1. Read the notebook
         with open(notebook_path, 'r', encoding='utf-8') as f:
             nb = nbformat.read(f, as_version=4)
 
-        # 2. Configure the PDF exporter
+        # 2. Configure the PDF exporter to use the custom template
         # This requires a full LaTeX installation (like MiKTeX, TeX Live, or MacTeX)
-        pdf_exporter = PDFExporter()
+        pdf_exporter = PDFExporter(template_file=template_path)
         
-        # Optionally, you can choose to execute the notebook before converting
-        # This is useful if you want to ensure all outputs are up-to-date.
-        # Comment out the next 3 lines if you don't want to execute the code.
-        # executor = ExecutePreprocessor(timeout=600, kernel_name='python3')
-        # executor.preprocess(nb, {'metadata': {'path': os.path.dirname(notebook_path)}})
-
         # 3. Convert the notebook to PDF
         pdf_data, resources = pdf_exporter.from_notebook_node(nb)
 
