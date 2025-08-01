@@ -1,20 +1,17 @@
 import streamlit as st
 import nbformat
-from nbconvert.preprocessors import ExecutePreprocessor
-from nbconvert import PDFExporter
-import nbconvert  # Import the base nbconvert package
+from nbconvert import WebPDFExporter
 import os
 import sys
 import asyncio
+import playwright
 
 # --- Core Conversion Logic ---
 
 def convert_notebook_to_pdf(notebook_path, output_path):
     """
-    Converts an .ipynb notebook file to a PDF file without the default title and date.
-
-    This function uses a custom LaTeX template ('notitle.tplx') to override
-    the default title block.
+    Converts an .ipynb notebook file to a PDF file using a headless browser (WebPDF).
+    This method does not require a LaTeX installation.
 
     Args:
         notebook_path (str): The full path to the input notebook file.
@@ -25,37 +22,34 @@ def convert_notebook_to_pdf(notebook_path, output_path):
         str: A message indicating the result or error.
     """
     try:
-        # Get the directory where the script and template are located
-        script_dir = os.path.dirname(__file__)
-        template_file_name = 'notitle.tplx'
-        
-        # Check if the custom template file exists in the script's directory
-        if not os.path.exists(os.path.join(script_dir, template_file_name)):
-            return False, f"Error: The required template file '{template_file_name}' was not found in the project directory."
+        # Ensure playwright's browser dependencies are installed
+        # This is a fallback, ideally handled by packages.txt on deployment
+        try:
+            # In a deployed environment, this might not be possible, but it's good for local testing.
+            os.system("playwright install-deps")
+            os.system("playwright install chromium")
+        except Exception:
+            # Silently fail if system calls are not allowed
+            pass
 
         # 1. Read the notebook
         with open(notebook_path, 'r', encoding='utf-8') as f:
             nb = nbformat.read(f, as_version=4)
 
-        # 2. Configure the PDF exporter
-        # --- MODIFIED: Explicitly define all template search paths ---
-        # This ensures nbconvert can find both our custom 'notitle.tplx'
-        # and its own base template 'article.tplx'.
-        nbconvert_path = nbconvert.__path__[0]
-        default_templates_path = os.path.join(nbconvert_path, 'templates')
+        # 2. Configure the WebPDF exporter
+        # This exporter uses a headless browser to "print" the notebook to PDF.
+        # To remove the default title and date, we can use the 'exclude' options.
+        config = {
+            "Exporter": {
+                "exclude_input_prompt": True,
+                "exclude_output_prompt": True,
+            }
+        }
         
-        template_search_paths = [
-            script_dir,
-            default_templates_path,
-        ]
-
-        pdf_exporter = PDFExporter(
-            template_file=template_file_name,
-            template_paths=template_search_paths
-        )
+        web_pdf_exporter = WebPDFExporter(config=config)
         
         # 3. Convert the notebook to PDF
-        pdf_data, resources = pdf_exporter.from_notebook_node(nb)
+        pdf_data, resources = web_pdf_exporter.from_notebook_node(nb)
 
         # 4. Write the PDF to a file
         with open(output_path, 'wb') as f:
@@ -66,12 +60,11 @@ def convert_notebook_to_pdf(notebook_path, output_path):
     except FileNotFoundError:
         return False, f"Error: The file '{notebook_path}' was not found."
     except Exception as e:
-        # Catches errors from nbconvert, often related to missing LaTeX
+        # Catches errors from nbconvert or playwright
         error_message = str(e)
-        if "xelatex not found on PATH" in error_message or "pdflatex not found on PATH" in error_message:
-             return False, ("ERROR: LaTeX is not installed or not in the system's PATH. "
-                           "Please install a LaTeX distribution (like MiKTeX for Windows, "
-                           "TeX Live for Linux, or MacTeX for macOS) to convert notebooks to PDF.")
+        if "command not found" in error_message.lower() or "chromium" in error_message.lower():
+             return False, ("ERROR: Headless browser (Chromium) is not installed or not found. "
+                           "Please ensure your deployment environment includes the necessary browser dependencies.")
         return False, f"An unexpected error occurred: {e}"
 
 
@@ -140,8 +133,7 @@ def main():
 
     st.markdown("---")
     st.info(
-        "**Note:** This converter requires a LaTeX installation on the machine where this app is running. "
-        "If the conversion fails, it's likely because LaTeX is missing."
+        "**Note:** This converter uses a headless browser. If it fails, there might be an issue with the browser dependency installation on the server."
     )
 
 
